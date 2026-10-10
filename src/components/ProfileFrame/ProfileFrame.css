@@ -1,0 +1,103 @@
+.profile-frame {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  aspect-ratio: 4 / 5;
+}
+
+.profile-frame__photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: 18px 18px 0 var(--accent);
+}
+
+.profile-frame__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-frame__glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(18, 17, 24, 0.55) 100%);
+  pointer-events: none;
+}
+
+.profile-frame__ring {
+  position: absolute;
+  inset: -18px;
+  border-radius: 2px;
+  border: 1px solid var(--text);
+  z-index: -1;
+}
+
+.profile-frame__decor {
+  position: absolute;
+  z-index: -2;
+}
+
+.profile-frame__decor--grid {
+  inset: -40px;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+  border-radius: 40px;
+}
+
+.profile-frame__decor--code,
+.profile-frame__decor--brace {
+  font-size: 1.6rem;
+  color: var(--accent-2);
+  opacity: 0.5;
+}
+
+.profile-frame__decor--code {
+  top: -6%;
+  left: -10%;
+}
+
+.profile-frame__decor--brace {
+  bottom: -4%;
+  right: -8%;
+}
+
+.profile-frame__badge {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-strong);
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+}
+
+.profile-frame__badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+}
+
+@media (max-width: 720px) {
+  .profile-frame {
+    max-width: 300px;
+  }
+
+  .profile-frame__decor {
+    display: none;
+  }
+}

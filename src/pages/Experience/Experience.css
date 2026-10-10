@@ -1,0 +1,51 @@
+.experience-hero {
+  padding-top: calc(var(--header-h) + 40px);
+  padding-bottom: 10px;
+}
+
+.experience-timeline {
+  padding-top: 20px;
+}
+
+.experience-education__list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.experience-education__item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.experience-education__item svg {
+  color: var(--accent-2);
+  flex-shrink: 0;
+}
+
+.experience-education__item h4 {
+  font-size: 1rem;
+  margin-bottom: 3px;
+}
+
+.experience-education__item span {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .experience-education__item {
+    flex-wrap: wrap;
+  }
+
+  .experience-education__item span {
+    margin-left: 46px;
+  }
+}

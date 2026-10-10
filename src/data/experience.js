@@ -1,0 +1,31 @@
+export const experience = [
+  {
+    id: 1,
+    role: 'PHP Laravel Developer',
+    company: 'The Dezine',
+    period: '08/2023 — Present',
+    current: true,
+    responsibilities: [
+      'Developed responsive and user-friendly web interfaces.',
+      'Built and managed admin dashboards and management systems.',
+      'Developed stock management and product management features.',
+      'Worked with JSON and API response handling.',
+      'Worked with email sending services and SMTP configurations.',
+      'Created custom API endpoints for mobile and web applications.',
+      'Handled API error responses, validation, and debugging.',
+      'Integrated payment gateway APIs for online transactions using PAYTM.',
+    ],
+    integrations: [
+      'Payment Gateway Integration',
+      'SMTP Email',
+      'SMS Gateway',
+      'WhatsApp Services',
+      'Google Auth',
+      'Google Maps',
+      'Google Reviews API',
+      'PDF Generation',
+      'PNG / Image Processing',
+      'Excel Import / Export',
+    ],
+  },
+]

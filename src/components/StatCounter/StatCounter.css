@@ -1,0 +1,18 @@
+.stat-counter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+}
+
+.stat-counter__value {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stat-counter__label {
+  font-size: 0.85rem;
+}
