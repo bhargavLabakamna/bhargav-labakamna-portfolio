@@ -95,20 +95,23 @@
 .about-preview__grid {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
-  gap: 56px;
+  gap: 60px;
+  align-items: center;
   margin-bottom: 28px;
 }
 
 .about-preview__text {
   font-size: 1.08rem;
+  line-height: 1.8;
   color: var(--text-muted);
   max-width: 52ch;
+  margin-top: 8px;
 }
 
 .about-preview__stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 24px;
+  gap: 22px 24px;
 }
 
 .about-preview__link {
