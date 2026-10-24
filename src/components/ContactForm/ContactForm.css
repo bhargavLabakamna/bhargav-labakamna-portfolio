@@ -56,6 +56,11 @@
   overflow: hidden;
 }
 
+.contact-form__submit-error {
+  color: #f0725a;
+  font-size: 0.9rem;
+}
+
 .contact-form__submit {
   align-self: flex-start;
   margin-top: 6px;

@@ -71,7 +71,21 @@ Project cards use a generated abstract SVG graphic (`ProjectPreview` component) 
 
 ## Contact form
 
-The contact form (`src/components/ContactForm/ContactForm.jsx`) validates input and shows a success state, but does not send real email — there's no backend in this project. The `handleSubmit` function is clearly isolated so you can swap the demo `setTimeout` for a real API call (e.g. to a Laravel endpoint, Formspree, or similar) when you're ready.
+Contact inquiries are saved to the Firebase Realtime Database `contactInquiries` path.
+
+1. Create a Firebase project and register a Web app in the Firebase console.
+2. Create a Realtime Database for the project.
+3. Copy `.env.example` to `.env` and fill in the Web app's Firebase configuration values, including the Realtime Database URL.
+4. Publish the rules in `database.rules.json` in the Realtime Database Rules tab. The rules allow validated inquiry submissions only; reading, updating, and deleting inquiries from the client are denied.
+5. Restart the development server after editing `.env`.
+
+The Firebase web configuration is used by the browser and is not a server-side secret. Realtime Database rules must be published to the same project as the configuration for submissions to work.
+
+## Admin panel
+
+The admin panel is available at `/admin`; it contains a dashboard and a live contact-inquiries page at `/admin/inquiries`. Its demo login accepts `bhargav@gmail.com`, followed by the fixed code `1111`. This is only a client-side screen and is not authentication; anyone can bypass it.
+
+The Realtime Database rules in `database.rules.json` allow public reads of all contact inquiries. Anyone who knows the database URL can retrieve submitters' names, email addresses, subjects, and messages, regardless of the admin screen. Publish these rules only if you explicitly want inquiry data to be public. Do not use this configuration for private contact data.
 
 ## Notes
 

@@ -6,11 +6,13 @@ import { navLinks } from '../../data/navigation'
 import { profile } from '../../data/profile'
 import './Header.css'
 
+const themePreferenceKey = 'portfolio-theme-v2'
+
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [lightTheme, setLightTheme] = useState(
-    () => window.localStorage.getItem('portfolio-theme') === 'light'
+    () => window.localStorage.getItem(themePreferenceKey) !== 'dark'
   )
   const location = useLocation()
 
@@ -34,7 +36,7 @@ export default function Header() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = lightTheme ? 'light' : 'dark'
-    window.localStorage.setItem('portfolio-theme', lightTheme ? 'light' : 'dark')
+    window.localStorage.setItem(themePreferenceKey, lightTheme ? 'light' : 'dark')
   }, [lightTheme])
 
   return (

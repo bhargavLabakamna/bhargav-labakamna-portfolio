@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 
@@ -20,9 +20,19 @@ import Services from './pages/Services/Services'
 import Contact from './pages/Contact/Contact'
 import NotFound from './pages/NotFound/NotFound'
 
+const Admin = lazy(() => import('./pages/Admin/Admin'))
+
 export default function App() {
   const [loading, setLoading] = useState(true)
   const location = useLocation()
+
+  if (location.pathname.startsWith('/admin')) {
+    return (
+      <Suspense fallback={<div className="admin-loading">Loading admin panel…</div>}>
+        <Admin />
+      </Suspense>
+    )
+  }
 
   return (
     <>

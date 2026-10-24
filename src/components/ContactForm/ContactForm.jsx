@@ -22,33 +22,44 @@ function validate(values) {
   return errors
 }
 
-// Submission is currently a demo state — no backend is wired up.
-// Swap `handleSubmit`'s success branch for a real API call when ready.
 export default function ContactForm() {
   const [values, setValues] = useState(initialState)
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setValues((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
+    if (submitError) setSubmitError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const validationErrors = validate(values)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
 
     setSubmitting(true)
-    // Demo delay to simulate a network request — replace with a real API call.
-    setTimeout(() => {
-      setSubmitting(false)
+    setSubmitError('')
+
+    try {
+      const { submitContactInquiry } = await import('../../services/contactInquiries')
+      await submitContactInquiry(values)
       setSubmitted(true)
       setValues(initialState)
-    }, 900)
+    } catch (error) {
+      console.error('Contact inquiry submission failed:', error)
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Your message could not be sent. Please try again.'
+      )
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (submitted) {
@@ -182,6 +193,12 @@ export default function ContactForm() {
           )}
         </AnimatePresence>
       </div>
+
+      {submitError && (
+        <p className="contact-form__submit-error" role="alert">
+          {submitError}
+        </p>
+      )}
 
       <button type="submit" className="btn btn-primary contact-form__submit" disabled={submitting}>
         {submitting ? 'Sending...' : 'Send Message'}
