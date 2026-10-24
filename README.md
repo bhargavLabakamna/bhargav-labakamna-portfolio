@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173`).
+Open the URL Netlify CLI prints (usually `http://localhost:8888`). Netlify Dev runs Vite and the project's serverless functions together.
 
 To build for production:
 
@@ -50,20 +50,9 @@ Everything you're likely to want to change lives in `src/data/`:
 
 You generally won't need to touch component code to update content.
 
-## Replacing the profile photo
+## Updating the profile photo
 
-The About page uses `src/components/ProfileFrame/ProfileFrame.jsx`, which imports:
-
-```js
-import profileImage from '../../assets/images/profile-placeholder.svg'
-```
-
-To use your own photo:
-
-1. Add your photo to `src/assets/images/` (e.g. `profile-placeholder.jpg`).
-2. Update the import in `ProfileFrame.jsx` to point at your file.
-
-That's the only place you need to change — every page that shows your photo pulls from this one component.
+Use **Admin → Profile update** (`/admin/profile`) to upload the photo. The browser sends it to a Netlify Function, which stores the image in the persistent Netlify Blobs store `admin-profile-images`. Firebase Realtime Database at `admin/1/image` stores only the generated filename. The portfolio reads that record and displays the image served by the function; new uploads therefore appear without a new site deploy. JPG, PNG, and WebP files up to 5 MB are accepted.
 
 ## Project preview images
 
@@ -83,13 +72,15 @@ The Firebase web configuration is used by the browser and is not a server-side s
 
 ## Admin panel
 
-The admin panel is available at `/admin`; it contains a dashboard and a live contact-inquiries page at `/admin/inquiries`. Its demo login accepts `bhargav@gmail.com`, followed by the fixed code `1111`. This is only a client-side screen and is not authentication; anyone can bypass it.
+The admin panel is available at `/admin`; it contains a dashboard, a live contact-inquiries page at `/admin/inquiries`, and a separate profile update page at `/admin/profile`. Its demo login accepts `bhargav@gmail.com`, followed by the fixed code `1111`. This is only a client-side screen and is not authentication; anyone can bypass it.
 
 The Realtime Database rules in `database.rules.json` allow anyone on the internet to read, create, change, or delete all data in the Firebase database, regardless of the admin screen. This is suitable only for a disposable demo database and must not be used with real or private information.
 
+The **Profile update** page saves the admin record with fixed ID `1` at `admin/1` in Realtime Database, using `id`, `first_name`, `last_name`, `email`, `mobile`, and `image` fields. The `image` value is only a filename; photo bytes are stored in Netlify Blobs, not Firebase Storage. Netlify Blobs is served by `netlify/functions/admin-profile-image.mjs`.
+
 ## Deploying to Netlify
 
-Netlify builds with `npm run build`, publishes `dist`, and uses `netlify.toml` to serve the React app for routes such as `/admin` on direct visits. Firebase's public web-app configuration is included in `src/services/firebase.js`, so no Firebase environment variables are required in Netlify. After pushing the project changes, trigger a new Netlify deploy.
+Netlify builds with `npm run build`, publishes `dist`, and deploys functions from `netlify/functions`. Firebase's public web-app configuration is included in `src/services/firebase.js`, so no Firebase environment variables are required in Netlify. Deploy the updated app once to publish the profile-image function; subsequent image uploads are stored in Netlify Blobs and do not trigger a deploy. For local development, use `npm run dev` (`netlify dev`) so function requests are handled; Netlify CLI may ask you to log in or link the local project for Blobs access.
 
 To enable the demo database access, copy the contents of `database.rules.json` into **Firebase Console → Realtime Database → Rules** and click **Publish**. Firebase rules are deployed separately from the website; changing this local file or deploying to Netlify does not publish the rules automatically.
 

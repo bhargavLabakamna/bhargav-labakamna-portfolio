@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { onValue, ref } from 'firebase/database'
 import {
   ArrowDownRight,
   ArrowUpRight,
   CheckCircle2,
+  ImagePlus,
   Inbox,
   LayoutDashboard,
   LockKeyhole,
@@ -13,7 +14,10 @@ import {
   UserRound,
 } from 'lucide-react'
 import { Link, NavLink, Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
+import { saveAdminProfile, subscribeAdminProfile, uploadAdminProfilePhoto } from '../../services/adminProfile'
 import { getFirebaseDatabase } from '../../services/firebase'
+import { profile as defaultProfile } from '../../data/profile'
+import profilePlaceholder from '../../assets/images/profile-placeholder.svg'
 import './Admin.css'
 
 const ADMIN_EMAIL = 'bhargav@gmail.com'
@@ -83,6 +87,42 @@ function AdminLogin({ onAuthenticated }) {
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const otpInputRefs = useRef([])
+
+  const updateOtpDigit = (index, value) => {
+    const digits = value.replace(/\D/g, '')
+
+    if (digits.length > 1) {
+      const pastedDigits = digits.slice(0, 4).split('')
+      setOtp(pastedDigits.join(''))
+      setError('')
+      otpInputRefs.current[Math.min(pastedDigits.length, 3)]?.focus()
+      return
+    }
+
+    const nextOtp = otp.split('')
+    nextOtp[index] = digits
+    setOtp(nextOtp.join('').slice(0, 4))
+    setError('')
+
+    if (digits && index < 3) otpInputRefs.current[index + 1]?.focus()
+  }
+
+  const handleOtpKeyDown = (index, event) => {
+    if (event.key === 'Backspace' && !otp[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus()
+    }
+  }
+
+  const handleOtpPaste = (event) => {
+    const pastedDigits = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
+    if (!pastedDigits) return
+
+    event.preventDefault()
+    setOtp(pastedDigits)
+    setError('')
+    otpInputRefs.current[Math.min(pastedDigits.length, 3)]?.focus()
+  }
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -138,21 +178,30 @@ function AdminLogin({ onAuthenticated }) {
             </>
           ) : (
             <>
-              <label htmlFor="admin-otp">Verification code</label>
-              <input
-                autoComplete="one-time-code"
-                id="admin-otp"
-                inputMode="numeric"
-                maxLength={4}
-                onChange={(event) => {
-                  setOtp(event.target.value.replace(/\D/g, '').slice(0, 4))
-                  setError('')
-                }}
-                placeholder="Enter 4-digit code"
-                required
-                type="text"
-                value={otp}
-              />
+              <span className="admin-login__otp-label" id="admin-otp-label">Verification code</span>
+              <div
+                className="admin-login__otp"
+                role="group"
+                aria-labelledby="admin-otp-label"
+                onPaste={handleOtpPaste}
+              >
+                {Array.from({ length: 4 }, (_, index) => (
+                  <input
+                    key={index}
+                    aria-label={`Verification code digit ${index + 1}`}
+                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    autoFocus={index === 0}
+                    inputMode="numeric"
+                    maxLength={1}
+                    onChange={(event) => updateOtpDigit(index, event.target.value)}
+                    onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                    ref={(element) => { otpInputRefs.current[index] = element }}
+                    required
+                    type="text"
+                    value={otp[index] || ''}
+                  />
+                ))}
+              </div>
               <button
                 className="admin-login__change-email"
                 onClick={() => {
@@ -208,6 +257,7 @@ function AdminLayout({ user, onSignOut }) {
         <nav className="admin-nav" aria-label="Admin navigation">
           <NavLink end to="/admin"><LayoutDashboard size={18} /> Dashboard</NavLink>
           <NavLink to="/admin/inquiries"><Inbox size={18} /> Contact inquiries</NavLink>
+          <NavLink to="/admin/profile"><UserRound size={18} /> Profile update</NavLink>
         </nav>
         <div className="admin-sidebar__bottom">
           <span className="admin-user"><UserRound size={17} /> {user.email}</span>
@@ -267,6 +317,182 @@ function AdminDashboard({ inquiries, loading, error }) {
         <Link className="admin-text-link" to="/admin/inquiries">All inquiries <ArrowUpRight size={15} /></Link>
       </div>
       <InquiryList inquiries={latestInquiries} loading={loading} error={error} compact />
+    </section>
+  )
+}
+
+function AdminProfileEditor() {
+  const [profile, setProfile] = useState({
+    firstName: defaultProfile.firstName,
+    lastName: defaultProfile.lastName,
+    email: defaultProfile.email,
+    mobile: defaultProfile.phone,
+    imageName: '',
+    photoURL: '',
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    let unsubscribe
+
+    try {
+      unsubscribe = subscribeAdminProfile(
+        (savedProfile) => {
+          if (!active) return
+          setProfile(savedProfile)
+          setLoading(false)
+        },
+        (subscriptionError) => {
+          console.error('Could not load admin profile:', subscriptionError)
+          if (!active) return
+          setError('Could not load the profile from Firebase. Check your database rules.')
+          setLoading(false)
+        }
+      )
+    } catch (subscriptionError) {
+      console.error('Could not connect to admin profile:', subscriptionError)
+      setError('Could not connect to Firebase Realtime Database.')
+      setLoading(false)
+    }
+
+    return () => {
+      active = false
+      unsubscribe?.()
+    }
+  }, [])
+
+  const handleProfileChange = (event) => {
+    const { name, value } = event.target
+    setProfile((current) => ({ ...current, [name]: value }))
+    setMessage('')
+    setError('')
+  }
+
+  const handleSave = async (event) => {
+    event.preventDefault()
+    setSaving(true)
+    setMessage('')
+    setError('')
+
+    try {
+      await saveAdminProfile(profile)
+      setMessage('Profile saved to Firebase.')
+    } catch (saveError) {
+      console.error('Could not save admin profile:', saveError)
+      setError('Could not save the profile. Check your Firebase Realtime Database rules.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handlePhotoChange = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setUploading(true)
+    setMessage('')
+    setError('')
+
+    try {
+      const uploadedPhoto = await uploadAdminProfilePhoto(file)
+      setProfile((current) => ({
+        ...current,
+        imageName: uploadedPhoto.filename,
+        photoURL: uploadedPhoto.photoURL,
+      }))
+      setMessage('Profile photo uploaded to Netlify Blobs.')
+    } catch (uploadError) {
+      console.error('Could not upload admin profile photo:', uploadError)
+      setError(uploadError.message || 'Could not upload the profile photo.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <section className="admin-page">
+      <div className="admin-page__heading">
+        <div>
+          <p className="admin-eyebrow">Settings</p>
+          <h1>Profile update</h1>
+          <p className="admin-page__description">Update your profile details and photo.</p>
+        </div>
+      </div>
+
+      {loading && <p className="admin-page__description">Loading profile…</p>}
+      <form className="admin-profile__form" onSubmit={handleSave}>
+        <div className="admin-profile__photo">
+          <img src={profile.photoURL || profilePlaceholder} alt="Admin profile" />
+          <label className="admin-button" htmlFor="admin-profile-photo">
+            <ImagePlus size={16} />
+            {uploading ? 'Uploading…' : 'Upload photo'}
+          </label>
+          <input
+            accept="image/jpeg,image/png,image/webp"
+            disabled={uploading || loading}
+            id="admin-profile-photo"
+            onChange={handlePhotoChange}
+            type="file"
+          />
+          <span>Image up to 5 MB</span>
+        </div>
+
+        <div className="admin-profile__fields">
+          <label>
+            First name
+            <input
+              autoComplete="given-name"
+              name="firstName"
+              onChange={handleProfileChange}
+              required
+              value={profile.firstName}
+            />
+          </label>
+          <label>
+            Last name
+            <input
+              autoComplete="family-name"
+              name="lastName"
+              onChange={handleProfileChange}
+              required
+              value={profile.lastName}
+            />
+          </label>
+          <label>
+            Email
+            <input
+              autoComplete="email"
+              name="email"
+              onChange={handleProfileChange}
+              required
+              type="email"
+              value={profile.email}
+            />
+          </label>
+          <label>
+            Mobile
+            <input
+              autoComplete="tel"
+              name="mobile"
+              onChange={handleProfileChange}
+              required
+              type="tel"
+              value={profile.mobile}
+            />
+          </label>
+          {error && <p className="admin-alert" role="alert">{error}</p>}
+          {message && <p className="admin-login__success" role="status">{message}</p>}
+          <button className="admin-button admin-button--primary" disabled={saving || loading} type="submit">
+            {saving ? 'Saving…' : 'Save profile'}
+          </button>
+        </div>
+      </form>
     </section>
   )
 }
@@ -364,6 +590,7 @@ function AdminContent({ user, onSignOut, onAuthenticated }) {
       >
         <Route index element={<AdminDashboard error={error} inquiries={inquiries} loading={loading} />} />
         <Route path="inquiries" element={<ContactInquiries error={error} inquiries={inquiries} loading={loading} />} />
+        <Route path="profile" element={<AdminProfileEditor />} />
       </Route>
       <Route path="*" element={<Navigate replace to="/admin" />} />
     </Routes>

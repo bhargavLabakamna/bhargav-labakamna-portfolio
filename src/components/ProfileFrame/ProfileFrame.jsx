@@ -1,15 +1,26 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { profile } from '../../data/profile'
 import { useIsFinePointer } from '../../hooks/usePointerType'
 import profileImage from '../../assets/images/profile-placeholder.svg'
+import { subscribeAdminProfile } from '../../services/adminProfile'
 import './ProfileFrame.css'
 
-// Replace `profileImage` above with an import of your own photo
-// (e.g. `profile-placeholder.jpg`) to swap it everywhere this component is used.
 export default function ProfileFrame() {
   const ref = useRef(null)
   const isFine = useIsFinePointer()
+  const [adminPhotoURL, setAdminPhotoURL] = useState('')
+
+  useEffect(() => {
+    try {
+      return subscribeAdminProfile(
+        (adminProfile) => setAdminPhotoURL(adminProfile.photoURL),
+        (error) => console.error('Could not load admin profile photo:', error)
+      )
+    } catch (error) {
+      console.error('Could not subscribe to the admin profile photo:', error)
+    }
+  }, [])
 
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
@@ -70,7 +81,7 @@ export default function ProfileFrame() {
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       >
         <img
-          src={profileImage}
+          src={adminPhotoURL || profileImage}
           alt={`Portrait of ${profile.name}`}
           className="profile-frame__photo"
           loading="eager"
