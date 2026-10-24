@@ -403,23 +403,89 @@
   font-size: 1.05rem;
 }
 
-.admin-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+.admin-chart {
+  padding: 24px 26px 18px;
+  border: 1px solid #e5e9f1;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(30, 45, 75, 0.025);
 }
 
-.admin-section-heading h2 {
+.admin-chart__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-chart__heading h2 {
+  margin: 0;
   color: #172033;
   font-size: 1.15rem;
 }
 
-.admin-section-heading p {
-  margin-top: 5px;
+.admin-chart__heading p,
+.admin-chart__status {
+  margin: 6px 0 0;
   color: #7a8496;
   font-size: 0.84rem;
+}
+
+.admin-chart__range {
+  padding: 7px 10px;
+  border: 1px solid #e5e9f1;
+  border-radius: 8px;
+  color: #667085;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.admin-chart__canvas {
+  width: 100%;
+  margin-top: 18px;
+  overflow-x: auto;
+}
+
+.admin-chart__svg {
+  display: block;
+  width: 100%;
+  min-width: 600px;
+  height: auto;
+  overflow: visible;
+}
+
+.admin-chart__grid {
+  stroke: #edf0f5;
+  stroke-width: 1;
+}
+
+.admin-chart__axis-label,
+.admin-chart__date-label {
+  fill: #8992a2;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.admin-chart__area {
+  fill: url(#inquiry-chart-fill);
+}
+
+.admin-chart__line {
+  fill: none;
+  stroke: #5368d8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.admin-chart__point {
+  fill: #fff;
+  stroke: #5368d8;
+  stroke-width: 3;
+}
+
+.admin-chart__status {
+  margin-top: 0;
 }
 
 .admin-profile {
@@ -582,13 +648,6 @@
   overflow-wrap: anywhere;
 }
 
-.admin-inquiry__message--compact {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
 .admin-empty {
   display: grid;
   min-height: 170px;
@@ -736,10 +795,6 @@
 
   .admin-inquiry time {
     padding-left: 51px;
-  }
-
-  .admin-section-heading {
-    align-items: flex-start;
   }
 
   .admin-profile__fields {

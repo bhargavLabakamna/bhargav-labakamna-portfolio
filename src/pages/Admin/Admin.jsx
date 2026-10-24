@@ -275,8 +275,107 @@ function AdminLayout({ user, onSignOut }) {
   )
 }
 
+function InquiryTrendChart({ inquiries, loading }) {
+  const days = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const firstDay = new Date(today)
+    firstDay.setDate(today.getDate() - 6)
+    const dailyCounts = Array(7).fill(0)
+
+    inquiries.forEach(({ createdAt }) => {
+      const timestamp = Number(createdAt)
+      if (!Number.isFinite(timestamp) || timestamp <= 0) return
+
+      const inquiryDay = new Date(timestamp)
+      inquiryDay.setHours(0, 0, 0, 0)
+      const index = Math.round((inquiryDay - firstDay) / 86400000)
+      if (index >= 0 && index < dailyCounts.length) dailyCounts[index] += 1
+    })
+
+    return dailyCounts.map((count, index) => {
+      const date = new Date(firstDay)
+      date.setDate(firstDay.getDate() + index)
+      return { count, date }
+    })
+  }, [inquiries])
+
+  const chart = { width: 720, height: 260, left: 48, right: 16, top: 18, bottom: 42 }
+  const plotWidth = chart.width - chart.left - chart.right
+  const plotHeight = chart.height - chart.top - chart.bottom
+  const maxCount = Math.max(...days.map(({ count }) => count), 1)
+  const axisMax = Math.ceil(maxCount / 4) * 4
+  const points = days.map(({ count }, index) => ({
+    x: chart.left + (plotWidth * index) / (days.length - 1),
+    y: chart.top + plotHeight - (count / axisMax) * plotHeight,
+  }))
+  const linePath = points.map(({ x, y }, index) => `${index ? 'L' : 'M'} ${x} ${y}`).join(' ')
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${chart.top + plotHeight} L ${points[0].x} ${chart.top + plotHeight} Z`
+  const numberFormat = new Intl.NumberFormat()
+  const dateFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric' })
+  const weekdayFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short' })
+
+  return (
+    <section className="admin-chart" aria-labelledby="inquiry-chart-title">
+      <div className="admin-chart__heading">
+        <div>
+          <h2 id="inquiry-chart-title">Inquiry activity</h2>
+          <p>Daily contact form submissions over the last 7 days.</p>
+        </div>
+        <span className="admin-chart__range">Last 7 days</span>
+      </div>
+      <div className="admin-chart__canvas">
+        <svg
+          className="admin-chart__svg"
+          viewBox={`0 0 ${chart.width} ${chart.height}`}
+          role="img"
+          aria-label={`Contact inquiries per day for the last 7 days: ${days.map(({ date, count }) => `${dateFormat.format(date)}: ${count}`).join(', ')}`}
+        >
+          <defs>
+            <linearGradient id="inquiry-chart-fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#5368d8" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#5368d8" stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+          {Array.from({ length: 5 }, (_, index) => {
+            const value = (axisMax * index) / 4
+            const y = chart.top + plotHeight - (plotHeight * index) / 4
+            return (
+              <g key={value}>
+                <line className="admin-chart__grid" x1={chart.left} x2={chart.width - chart.right} y1={y} y2={y} />
+                <text className="admin-chart__axis-label" x={chart.left - 12} y={y + 4} textAnchor="end">
+                  {numberFormat.format(value)}
+                </text>
+              </g>
+            )
+          })}
+          <path className="admin-chart__area" d={areaPath} />
+          <path className="admin-chart__line" d={linePath} />
+          {days.map(({ count, date }, index) => (
+            <g key={date.toISOString()}>
+              <circle className="admin-chart__point" cx={points[index].x} cy={points[index].y} r="4">
+                <title>{`${dateFormat.format(date)}: ${count} ${count === 1 ? 'inquiry' : 'inquiries'}`}</title>
+              </circle>
+              <text
+                className="admin-chart__date-label"
+                x={points[index].x}
+                y={chart.height - 12}
+                textAnchor="middle"
+              >
+                {weekdayFormat.format(date)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <p className="admin-chart__status" aria-live="polite">
+        {loading ? 'Loading inquiry activity…' : `Total inquiries in this period: ${days.reduce((total, day) => total + day.count, 0)}`}
+      </p>
+    </section>
+  )
+}
+
 function AdminDashboard({ inquiries, loading, error }) {
-  const latestInquiries = inquiries.slice(0, 5)
 
   return (
     <section className="admin-page">
@@ -309,14 +408,7 @@ function AdminDashboard({ inquiries, loading, error }) {
         </article>
       </div>
 
-      <div className="admin-section-heading">
-        <div>
-          <h2>Recent inquiries</h2>
-          <p>Newest messages submitted through your contact form.</p>
-        </div>
-        <Link className="admin-text-link" to="/admin/inquiries">All inquiries <ArrowUpRight size={15} /></Link>
-      </div>
-      <InquiryList inquiries={latestInquiries} loading={loading} error={error} compact />
+      <InquiryTrendChart inquiries={inquiries} loading={loading} />
     </section>
   )
 }
@@ -497,7 +589,7 @@ function AdminProfileEditor() {
   )
 }
 
-function InquiryList({ inquiries, loading, error, compact = false }) {
+function InquiryList({ inquiries, loading, error }) {
   if (loading) return <div className="admin-empty">Loading inquiries…</div>
   if (error) return <div className="admin-empty">Inquiry data could not be loaded.</div>
   if (inquiries.length === 0) {
@@ -527,9 +619,7 @@ function InquiryList({ inquiries, loading, error, compact = false }) {
             </time>
           </div>
           <h4>{inquiry.subject || 'No subject'}</h4>
-          <p className={`admin-inquiry__message ${compact ? 'admin-inquiry__message--compact' : ''}`}>
-            {inquiry.message}
-          </p>
+          <p className="admin-inquiry__message">{inquiry.message}</p>
         </article>
       ))}
     </div>
