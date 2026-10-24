@@ -75,17 +75,23 @@ Contact inquiries are saved to the Firebase Realtime Database `contactInquiries`
 
 1. Create a Firebase project and register a Web app in the Firebase console.
 2. Create a Realtime Database for the project.
-3. Copy `.env.example` to `.env` and fill in the Web app's Firebase configuration values, including the Realtime Database URL.
-4. Publish the rules in `database.rules.json` in the Realtime Database Rules tab. The rules allow validated inquiry submissions only; reading, updating, and deleting inquiries from the client are denied.
+3. The Firebase Web app configuration is prefilled in `src/services/firebase.js`; `.env` values can override it for local or deployment-specific configuration.
+4. Publish the rules in `database.rules.json` in the Realtime Database Rules tab. These demo rules grant public read and write access to the entire database.
 5. Restart the development server after editing `.env`.
 
-The Firebase web configuration is used by the browser and is not a server-side secret. Realtime Database rules must be published to the same project as the configuration for submissions to work.
+The Firebase web configuration is used by the browser and is not a server-side secret. Realtime Database rules must be published to the same project as the configuration for submissions to work. Netlify builds can use the prefilled config or set the corresponding `VITE_FIREBASE_*` variables in Site configuration → Environment variables and trigger a new deploy.
 
 ## Admin panel
 
 The admin panel is available at `/admin`; it contains a dashboard and a live contact-inquiries page at `/admin/inquiries`. Its demo login accepts `bhargav@gmail.com`, followed by the fixed code `1111`. This is only a client-side screen and is not authentication; anyone can bypass it.
 
-The Realtime Database rules in `database.rules.json` allow public reads of all contact inquiries. Anyone who knows the database URL can retrieve submitters' names, email addresses, subjects, and messages, regardless of the admin screen. Publish these rules only if you explicitly want inquiry data to be public. Do not use this configuration for private contact data.
+The Realtime Database rules in `database.rules.json` allow anyone on the internet to read, create, change, or delete all data in the Firebase database, regardless of the admin screen. This is suitable only for a disposable demo database and must not be used with real or private information.
+
+## Deploying to Netlify
+
+Netlify builds with `npm run build`, publishes `dist`, and uses `netlify.toml` to serve the React app for routes such as `/admin` on direct visits. Firebase's public web-app configuration is included in `src/services/firebase.js`, so no Firebase environment variables are required in Netlify. After pushing the project changes, trigger a new Netlify deploy.
+
+To enable the demo database access, copy the contents of `database.rules.json` into **Firebase Console → Realtime Database → Rules** and click **Publish**. Firebase rules are deployed separately from the website; changing this local file or deploying to Netlify does not publish the rules automatically.
 
 ## Notes
 
