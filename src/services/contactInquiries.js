@@ -1,25 +1,28 @@
 import { push, ref, serverTimestamp, set } from 'firebase/database'
 import { getFirebaseDatabase } from './firebase'
 
-const TURNSTILE_VERIFICATION_URL = '/.netlify/functions/verify-turnstile'
+const CONTACT_EMAIL_URL = '/.netlify/functions/send-contact-inquiry'
 
 export async function submitContactInquiry(values, captchaToken) {
   if (!captchaToken) {
     throw new Error('Please complete the captcha before sending your message.')
   }
 
-  const verificationResponse = await fetch(TURNSTILE_VERIFICATION_URL, {
+  const emailResponse = await fetch(CONTACT_EMAIL_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ token: captchaToken }),
+    body: JSON.stringify({
+      ...values,
+      token: captchaToken,
+    }),
   })
 
-  const verificationData = await verificationResponse.json().catch(() => ({}))
+  const emailData = await emailResponse.json().catch(() => ({}))
 
-  if (!verificationResponse.ok || !verificationData.success) {
-    throw new Error(verificationData.error || 'Captcha verification failed.')
+  if (!emailResponse.ok || !emailData.success) {
+    throw new Error(emailData.error || 'Your inquiry could not be sent.')
   }
 
   const db = getFirebaseDatabase()
