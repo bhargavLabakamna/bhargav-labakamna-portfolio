@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, CheckCircle2 } from 'lucide-react'
 import './ContactForm.css'
 
 const initialState = { name: '', email: '', subject: '', message: '' }
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAAFvDC5UuWiU78kJX'
 
 function validate(values) {
   const errors = {}
@@ -28,12 +29,80 @@ export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaError, setCaptchaError] = useState('')
+  const captchaRef = useRef(null)
+  const widgetIdRef = useRef(null)
+
+  useEffect(() => {
+    const renderTurnstile = () => {
+      if (!captchaRef.current || !window.turnstile) return
+
+      if (widgetIdRef.current) {
+        window.turnstile.remove(widgetIdRef.current)
+      }
+
+      widgetIdRef.current = window.turnstile.render(captchaRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        theme: 'light',
+        callback: (token) => {
+          setCaptchaToken(token)
+          setCaptchaError('')
+        },
+        'expired-callback': () => {
+          setCaptchaToken('')
+          setCaptchaError('Captcha expired. Please complete it again.')
+        },
+        'error-callback': () => {
+          setCaptchaToken('')
+          setCaptchaError('Captcha verification failed. Please try again.')
+        },
+      })
+    }
+
+    const loadTurnstileScript = () => {
+      if (window.turnstile) {
+        renderTurnstile()
+        return
+      }
+
+      const existingScript = document.getElementById('turnstile-script')
+      if (existingScript) {
+        existingScript.addEventListener('load', renderTurnstile, { once: true })
+        return
+      }
+
+      const script = document.createElement('script')
+      script.id = 'turnstile-script'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      script.async = true
+      script.defer = true
+      script.onload = renderTurnstile
+      document.body.appendChild(script)
+    }
+
+    loadTurnstileScript()
+
+    return () => {
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+      }
+    }
+  }, [])
+
+  const resetTurnstile = () => {
+    setCaptchaToken('')
+    if (window.turnstile && widgetIdRef.current) {
+      window.turnstile.reset(widgetIdRef.current)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setValues((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
     if (submitError) setSubmitError('')
+    if (captchaError) setCaptchaError('')
   }
 
   const handleSubmit = async (e) => {
@@ -41,17 +110,24 @@ export default function ContactForm() {
     const validationErrors = validate(values)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
+    if (!captchaToken) {
+      setCaptchaError('Please complete the captcha before sending your message.')
+      return
+    }
 
     setSubmitting(true)
     setSubmitError('')
+    setCaptchaError('')
 
     try {
       const { submitContactInquiry } = await import('../../services/contactInquiries')
-      await submitContactInquiry(values)
+      await submitContactInquiry(values, captchaToken)
       setSubmitted(true)
       setValues(initialState)
+      resetTurnstile()
     } catch (error) {
       console.error('Contact inquiry submission failed:', error)
+      resetTurnstile()
       setSubmitError(
         error instanceof Error
           ? error.message
@@ -193,6 +269,16 @@ export default function ContactForm() {
           )}
         </AnimatePresence>
       </div>
+
+      <div className="contact-form__captcha">
+        <div ref={captchaRef} />
+      </div>
+
+      {captchaError && (
+        <p className="contact-form__captcha-error" role="alert">
+          {captchaError}
+        </p>
+      )}
 
       {submitError && (
         <p className="contact-form__submit-error" role="alert">
