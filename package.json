@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^5.0.3",
     "@netlify/blobs": "^11.1.6",
     "firebase": "^13.1.0",
     "framer-motion": "^11.3.0",
