@@ -10,6 +10,7 @@ const extensionByType = {
 }
 const filenamePattern = /^admin-[a-zA-Z0-9-]+\.(jpg|png|webp)$/
 
+
 function jsonResponse(body, status = 200) {
   return Response.json(body, {
     status,
