@@ -26,7 +26,17 @@ export default async function handler(request) {
     return jsonResponse({ error: 'Captcha token is required.' }, 400)
   }
 
-  const secret = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAFvDC4IWAGqo4rOgpLHeogFIxz4'
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) {
+    return jsonResponse(
+      {
+        success: false,
+        error: 'Turnstile secret key is missing. Add TURNSTILE_SECRET_KEY to your Netlify environment variables.',
+      },
+      500
+    )
+  }
+
   const forwardedFor = request.headers.get('x-forwarded-for')
   const remoteIp = forwardedFor ? forwardedFor.split(',')[0].trim() : request.headers.get('x-real-ip')
 

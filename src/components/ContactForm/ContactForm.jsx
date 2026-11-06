@@ -4,7 +4,7 @@ import { Send, CheckCircle2 } from 'lucide-react'
 import './ContactForm.css'
 
 const initialState = { name: '', email: '', subject: '', message: '' }
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAAFvDC5UuWiU78kJX'
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
 function validate(values) {
   const errors = {}
@@ -37,6 +37,11 @@ export default function ContactForm() {
   useEffect(() => {
     const renderTurnstile = () => {
       if (!captchaRef.current || !window.turnstile) return
+
+      if (!TURNSTILE_SITE_KEY) {
+        setCaptchaError('Turnstile is not configured. Add VITE_TURNSTILE_SITE_KEY in your environment and restart the app.')
+        return
+      }
 
       if (widgetIdRef.current) {
         window.turnstile.remove(widgetIdRef.current)

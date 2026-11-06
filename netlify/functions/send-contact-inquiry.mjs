@@ -6,7 +6,14 @@ function jsonResponse(body, status = 200) {
 }
 
 async function verifyTurnstile(token, request) {
-  const secret = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAFvDC4IWAGqo4rOgpLHeogFIxz4'
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) {
+    return {
+      ok: false,
+      data: { 'error-codes': ['missing-secret-key'] },
+    }
+  }
+
   const forwardedFor = request.headers.get('x-forwarded-for')
   const remoteIp = forwardedFor ? forwardedFor.split(',')[0].trim() : request.headers.get('x-real-ip')
 
@@ -88,12 +95,16 @@ export default async function handler(request) {
       ? captchaCheck.data['error-codes'][0]
       : 'captcha_verification_failed'
 
+    const message = errorCode === 'missing-secret-key'
+      ? 'Turnstile secret key is missing. Add TURNSTILE_SECRET_KEY to your Netlify environment variables.'
+      : errorCode === 'missing-input-response'
+        ? 'Captcha response is missing.'
+        : 'Captcha verification failed.'
+
     return jsonResponse(
       {
         success: false,
-        error: errorCode === 'missing-input-response'
-          ? 'Captcha response is missing.'
-          : 'Captcha verification failed.',
+        error: message,
       },
       403
     )

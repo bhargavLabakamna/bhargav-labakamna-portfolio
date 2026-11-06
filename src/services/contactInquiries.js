@@ -3,9 +3,9 @@ import { push, ref, serverTimestamp, set } from 'firebase/database'
 import { getFirebaseDatabase } from './firebase'
 
 const TURNSTILE_VERIFICATION_URL = '/.netlify/functions/verify-turnstile'
-const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_38x27og'
-const adminTemplateId = import.meta.env.VITE_EMAILJS_ADMIN_TEMPLATE_ID || 'tfs2o2h'
-const userTemplateId = import.meta.env.VITE_EMAILJS_USER_TEMPLATE_ID || 'template_wnrbjwl'
+const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
+const adminTemplateId = import.meta.env.VITE_EMAILJS_ADMIN_TEMPLATE_ID
+const userTemplateId = import.meta.env.VITE_EMAILJS_USER_TEMPLATE_ID
 const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
 
 export async function submitContactInquiry(values, captchaToken) {
@@ -29,6 +29,12 @@ export async function submitContactInquiry(values, captchaToken) {
 
   if (!publicKey) {
     throw new Error('EmailJS public key is missing. Add VITE_EMAILJS_PUBLIC_KEY in Netlify or your .env file.')
+  }
+
+  if (!serviceId || !adminTemplateId || !userTemplateId) {
+    throw new Error(
+      'EmailJS service or template IDs are missing. Add VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_ADMIN_TEMPLATE_ID, and VITE_EMAILJS_USER_TEMPLATE_ID.'
+    )
   }
 
   const sanitizedValues = {

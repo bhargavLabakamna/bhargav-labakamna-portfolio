@@ -66,7 +66,9 @@ Contact inquiries are saved to the Firebase Realtime Database `contactInquiries`
 2. Create a Realtime Database for the project.
 3. The Firebase Web app configuration is prefilled in `src/services/firebase.js`; `.env` values can override it for local or deployment-specific configuration.
 4. Publish the rules in `database.rules.json` in the Realtime Database Rules tab. These demo rules grant public read and write access to the entire database.
-5. Restart the development server after editing `.env`.
+5. Create a Cloudflare Turnstile site and set `VITE_TURNSTILE_SITE_KEY` in `.env` or Netlify environment variables. Add the matching `TURNSTILE_SECRET_KEY` to the Netlify server function environment.
+6. Configure EmailJS by setting `VITE_EMAILJS_PUBLIC_KEY`, `VITE_EMAILJS_SERVICE_ID`, `VITE_EMAILJS_ADMIN_TEMPLATE_ID`, and `VITE_EMAILJS_USER_TEMPLATE_ID`.
+7. Restart the development server after editing `.env`.
 
 The Firebase web configuration is used by the browser and is not a server-side secret. Realtime Database rules must be published to the same project as the configuration for submissions to work. Netlify builds can use the prefilled config or set the corresponding `VITE_FIREBASE_*` variables in Site configuration → Environment variables and trigger a new deploy.
 
