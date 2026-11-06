@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, ArrowUpRight, Activity } from 'lucide-react'
 import GridBackground from '../../components/GridBackground/GridBackground'
-import Marquee from '../../components/Marquee/Marquee'
 import SectionTitle from '../../components/SectionTitle/SectionTitle'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
 import StatCounter from '../../components/StatCounter/StatCounter'
@@ -16,6 +15,21 @@ const fadeUp = {
   initial: { opacity: 0, y: 28 },
   animate: { opacity: 1, y: 0 },
 }
+
+const skillTags = [
+  'PHP',
+  'Laravel',
+  'MySQL',
+  'REST APIs',
+  'JavaScript',
+  'Git',
+  'API Integrations',
+  'HTML & CSS',
+  'AJAX',
+  'jQuery',
+  'React',
+  'Tailwind',
+]
 
 export default function Home() {
   const featured = projects.slice(0, 3)
@@ -142,15 +156,19 @@ export default function Home() {
         </a>
       </section>
 
-      <Marquee />
-
       {/* ===================== ABOUT PREVIEW ===================== */}
       <section className="section about-preview" id="home-about">
         <div className="container about-preview__inner">
-          <SectionTitle eyebrow="About" title="A developer who builds for real workflows" />
+          <SectionTitle eyebrow="About" title="I build reliable digital experiences." />
 
           <div className="about-preview__grid">
-            <p className="about-preview__text">{profile.about}</p>
+            <div className="about-preview__copy">
+              <p className="about-preview__text">{profile.about}</p>
+              <Link to="/about" className="link-underline about-preview__link">
+                More about my background
+                <ArrowRight size={16} />
+              </Link>
+            </div>
 
             <div className="about-preview__stats">
               {stats.map((stat, i) => (
@@ -158,11 +176,19 @@ export default function Home() {
               ))}
             </div>
           </div>
+        </div>
+      </section>
 
-          <Link to="/about" className="link-underline about-preview__link">
-            More about my background
-            <ArrowRight size={16} />
-          </Link>
+      <section className="section home-skills">
+        <div className="container">
+          <SectionTitle eyebrow="Skills" title="My Technical Skills" />
+          <div className="home-skills__list">
+            {skillTags.map((skill) => (
+              <span key={skill} className="home-skills__tag mono">
+                {skill}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

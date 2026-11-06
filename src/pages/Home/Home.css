@@ -24,12 +24,53 @@
   max-width: 560px;
 }
 
+.hero .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid rgba(62, 87, 191, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.36);
+  color: #2c396a;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero .eyebrow::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.18);
+}
+
 .hero__heading {
   font-size: clamp(3.2rem, 8vw, 7.6rem);
-  font-weight: 700;
-  letter-spacing: -0.055em;
-  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 0.94;
   margin: 18px 0 22px;
+  background: linear-gradient(120deg, #4d4eff 0%, #a14af5 28%, #2f7af7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero__greeting {
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
+  line-height: 1.1;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.hero__role {
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 600;
+  color: #1b2340;
+  margin-bottom: 18px;
 }
 
 .hero__heading-line {
@@ -222,4 +263,54 @@
 
 .final-cta__btn {
   margin-top: 8px;
+}
+
+.home-skills__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.home-skills__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.34);
+  color: var(--text);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.home-skills__tag:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-line);
+  box-shadow: 0 12px 24px rgba(67, 56, 202, 0.08);
+}
+
+.about-preview__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.about-preview__link {
+  width: fit-content;
+}
+
+@media (max-width: 640px) {
+  .home-skills__list {
+    gap: 10px;
+  }
+
+  .home-skills__tag {
+    min-height: 38px;
+    padding: 9px 12px;
+    font-size: 0.72rem;
+  }
 }
